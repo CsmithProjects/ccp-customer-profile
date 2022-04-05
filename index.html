@@ -1,0 +1,525 @@
+
+<!-- saved from url=(0066)https://s3.amazonaws.com/amazonconnectbootcampccp/SimpleAgent.html -->
+<html><head><meta http-equiv="Content-Type" content="application/javascript; charset=windows-1252">
+        <title>Simple Agent Console</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta content="utf-8" http-equiv="encoding">
+        <script type="application/javascript" src="jquery-3.1.0.min.js"></script>
+        <script type="application/javascript" src="amazon-connect-v1.2.0-23-g430d835.js"></script>
+        <script type="application/javascript" src="connect-streams-min.js"></script>
+        <script src="domain.js"></script>
+        <script src="profile.js"></script>
+        <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+    </head>
+    <body>
+        <style>
+            body {
+                overflow: auto;
+            }
+            #ccpContainer {
+                width:265px;
+                height:465px;
+                overflow:hidden;
+                float:left;
+                margin-left:22px;
+                padding:25px;
+            }
+            #section-main {
+                padding:10px;
+                width:960px;
+                height:495px;
+                margin-left:0px;
+                float:left;
+                overflow: auto;
+                background-color: #F8F8F8;
+            }
+            #product{
+                width:438px;
+                margin-bottom: 10px;
+            }
+            #subtotal {
+                display: flex;
+                justify-content: space-between;
+                margin-left: 200px;
+                height: 25px;
+            }
+            #sales-tax {
+                display: flex;
+                justify-content: space-between;
+                margin-left: 200px;
+                height: 25px;
+            }
+            #delivery-fee {
+                display: flex;
+                justify-content: space-between;
+                margin-left: 200px;
+                height: 25px;
+            }
+            #total {
+                display: flex;
+                justify-content: space-between;
+                margin-left: 200px;
+                height: 25px;
+                margin-bottom: 50px;
+            }
+            #quantity-label {
+                all: initial;
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                margin-top: 10px;
+                margin-bottom: 20px;
+            }
+            #add-product {
+                margin-bottom: 60px;
+            }
+            #add-product-link {
+                float: right;
+            }
+            #product-group {
+                border: 1px solid;
+                padding: 4px 4px 4px 4px;
+                margin-bottom: 8px;
+                margin-left: 3px;
+            }
+            label {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                text-align: right;
+                width: 400px;
+                line-height: 26px;
+                margin-bottom: 10px;
+            }
+
+            input {
+                height: 20px;
+                flex: 0 0 200px;
+                margin-left: 10px;
+            }
+            h1 {
+                text-align: center;
+            }
+            .column {
+                float: left;
+                width: 50%;
+            }
+            /* Clear floats after the columns */
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+            .iconify {
+                cursor: pointer;
+            }
+        </style>
+
+        <h1>Welcome to Amazon Connect Agent Console</h1>
+
+        <section id="ccpContainer">
+            <script>
+                //http://det3tqn8szocm.cloudfront.net/index.html
+                //----------------init CCP-----------------------------
+                var container = document.getElementById("ccpContainer");
+
+                connect.core.initCCP(
+                    container, {
+                        ccpUrl: 'https://instancetest12345.my.connect.aws/connect/ccp#/',
+                        softphone: {
+                            allowFramedSoftphone: true,
+                            disableRingtone: false
+                        }
+                    }
+                )
+                //-----------------End init CCP-------------------------
+
+                //-----------------CCP Events----------------------------
+                connect.contact(function(contact){
+                    //--------CCP OnConnecting-----------------
+                    contact.onConnecting(function(contact){
+                        console.log("CDEBUG >> " + "onConnecting() >> contactId = " + contact.contactId);
+
+                        var phoneNumber = contact.getConnections()[1].getAddress()['phoneNumber'];
+
+                        var attributes = contact.getAttributes();
+                        var EmployeeName = attributes["EmployeeName"].value;
+
+                        //add details to DIV
+                        $("#divDetails").append("<hr/> ALERTING CALL " + contact.contactId +
+                        " from " + EmployeeName +" <"+ phoneNumber + "> at " + new Date().toLocaleString() + "<br/><br/>");
+                    });
+                });
+
+
+            </script><iframe src="ccp.html" allow="microphone" style="width: 100%; height: 100%;"></iframe>
+        </section>
+
+        <section id="section-main">
+            <label>
+                Search for Profile: <input type="text" id="search-profile" name="name" maxlength="100" size="20" />
+            </label>
+            <hr>
+            <div id="section-main-content" style="margin-top: 25px">
+                <button type="button" id="create-profile" onClick="createProfileForm()">Create Profile</button>
+
+            </div>
+
+            <!-- <header><h1>Amazon Connect CCP Integration Details</h1></header>
+                    <fieldset>
+                        <legend>Contact Details</legend>
+                        <div id="divDetails"></div>
+                    </fieldset> -->
+        </section>
+
+
+
+</body></html>
+
+
+<script>
+    $( document ).ready(function() {
+        //checkDomain(); // GETS Domain then UPDATES OR CREATES
+        //createProfile();
+        //updateProfile();
+
+
+        // While loop for object reading ----*******
+        // var length = 1;
+
+        // while(object.hasOwnProperty('product' + (length + 1))) {
+        //    length++;
+        // }
+
+        // For loops for each attribute needed (product price, product name, product description, etc.8)
+    });
+
+    async function productSum(parentElement) {
+        let arr1 = document.getElementsByName('product');
+        let arr2 = document.getElementsByName('quantity');
+        let el = document.getElementById("hr");
+        let subTotal = 0;
+        let deliveryFee = 0;
+        let salesTax = 0;
+        let total = 0;
+        const salesTaxPercent = 0.0725;
+        const deliveryFeePercent = 0.15;
+        let productIndividualPrice = 0;
+        let productQuantity = 0;
+        let productTotalPrice = 0;
+
+        for (var i = 0, j = arr1.length; i < j; i++) {
+            if (parseFloat(arr2[i].value) && parseFloat(arr1[i].selectedOptions[0].dataset.price)) {
+                subTotal += parseFloat(arr1[i].selectedOptions[0].dataset.price * arr2[i].value);
+            }
+        }
+
+        if (parentElement) {
+            productIndividualPrice = parentElement.querySelector('#product').selectedOptions[0].dataset.price;
+            productQuantity = parentElement.querySelector('#quantity').value;
+            productTotalPrice = parseFloat(productIndividualPrice * productQuantity).toFixed(2);
+        }
+
+        if (subTotal) {
+            subTotal = subTotal.toFixed(2)
+            salesTax = (subTotal * salesTaxPercent).toFixed(2);
+            deliveryFee = (subTotal * deliveryFeePercent).toFixed(2);
+            total = ((+salesTax) + (+deliveryFee) + (+subTotal)).toFixed(2);
+        }
+
+        if (productIndividualPrice) {
+            parentElement.querySelector('#priceForEach').innerHTML = 'Individual Price: $' + productIndividualPrice + '&ensp;&ensp;&ensp;&ensp;&ensp;';
+            parentElement.querySelector('#priceTotal').innerHTML = 'Group Price: $' + productTotalPrice;
+        }
+
+        el.style.display = el.style.display === 'none' ? '' : '';
+        document.getElementById('subtotal').innerHTML = '<p>Subtotal:</p> <p>$' + subTotal + '</p>';
+        document.getElementById('sales-tax').innerHTML = '<p>Sales tax (on Subtotal):</p> <p>+&ensp;$' + salesTax + '</p>';
+        document.getElementById('delivery-fee').innerHTML = '<p>Delivery fee (on Subtotal):</p> <p>+&ensp;$' + deliveryFee + '</p>';
+        document.getElementById('total').innerHTML = '<p>Total:</p> <p>$' + total + '</p>';
+    }
+
+    function deleteProduct(parentElement) {
+        parentElement.remove();
+        productSum(parentElement); //updates product totals and prices
+    }
+
+    function cancelProfile() {
+        if (confirm('Are you sure you would like to cancel creating the profile?')) {
+            document.getElementById('section-main-content').innerHTML = '' +
+            '<button type="button" id="create-profile" onClick="createProfileForm()">Create Profile</button>';
+        }
+    }
+
+    function saveProfile() {
+        let val = document.getElementById('profile-id').value;
+        if (val === '') {
+            createProfile();
+        } else {
+            updateProfile();
+        }
+    }
+
+    function createProfileForm() {
+        let str = '' +
+        '<h1>Profile</h1>' +
+        '<button type="button" id="save-profile" style="float: right; margin-right: 25px; margin-bottom: 25px" onClick="saveProfile()">Save</button>' +
+        '<button type="button" id="cancel" style="float: right; margin-right: 10px; margin-bottom: 25px" onClick="cancelProfile()">Cancel</button>' +
+        '<input type="hidden" id="profile-id" style="display: none" name="ProfileId" value="" readonly>' +
+        '<div class="row">' +
+            '<div class="column" style="margin-top: 46px">' +
+                '<label>' +
+                    'First Name: <input type="text" autocomplete="off" id="first-name" name="FirstName" />' +
+                '</label>' +
+                '<label>' +
+                    'Last Name: <input type="text" autocomplete="off" id="last-name" name="LastName" />' +
+                '</label>' +
+                '<label>' +
+                    'Date of Birth: <input type="text" autocomplete="off" id="birth-date" name="LastName" />' +
+                '</label>' +
+                '<label>' +
+                    'Phone Number: <input type="text" autocomplete="off" id="phone-number" name="PhoneNumber" />' +
+                '</label>' +
+                '<label>' +
+                    'Email Address: <input type="text" autocomplete="off" id="email" name="EmailAddress" />' +
+                '</label>' +
+                '<label>' +
+                    'Street Address: <input type="text" autocomplete="off" id="address1" name="Address1" />' +
+                '</label>' +
+                '<label>' +
+                    'Apt, suite, etc. (If applies): <input type="text" autocomplete="off" id="address2" name="Address2" />' +
+                '</label>' +
+                '<label>' +
+                    'Zipcode: <input type="text" autocomplete="off" id="zipcode" name="PostalCode" />' +
+                '</label>' +
+                '<hr>' +
+            '</div>' +
+            '<div id="product-list" class="column">' +
+                '<div id="product-group">' +
+                    '<select name="product" id="product" onchange="productSum(this.parentElement)">' +
+                        '<option hidden selected="selected">Select Product</option>' +
+                        '<optgroup label="–––Astria Farms–––">' +
+                            '<option value="1" data-price="89.99">' +
+                                'Astria Farms DELTA 8 Gummies – BIG FRUIT PACK – (100 MG EACH – 2000 MG TOTAL – 20 CT)' +
+                            '</option>' +
+                            '<option value="1" data-price="25.99">' +
+                                'Astria Farms DELTA 8 Gummies – Lemon – (30 mg each – 300 mg total – 10 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="25.99">' +
+                                'Astria Farms DELTA 8 Gummies – Regular Fruit Pack – (30 mg each – 300 mg total – 10 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="25.99">' +
+                                'Astria Farms DELTA 8 Gummies – Super Sour Fruit Pack – (30 mg each – 300 mg total – 10 ct)' +
+                            '</option>' +
+                        '</optgroup>' +
+                        '<optgroup label="–––Delta Beverages–––">' +
+                            '<option value="1" data-price="19.99">' +
+                                'Delta Beverages – Lime – (4-Pack)' +
+                            '</option>' +
+                            '<option value="1" data-price="19.99">' +
+                                'Delta Beverages – Mango – (4-Pack)' +
+                            '</option>' +
+                            '<option value="1" data-price="59.99">' +
+                                'Delta Beverages – MIXX Variety Pack – (12-Pack)' +
+                            '</option>' +
+                        '</optgroup>' +
+                        // '<optgroup label="–––Earthy Select–––">' +
+                        //     '<option value="1" data-price="">' +
+                        //         'Earthy Select Delta 8 Vape - Headband – (1 g)' +
+                        //     '</option>' +
+                        //     '<option value="1" data-price="">' +
+                        //         'Earthy Select THC-O Disposable – Blue Cookies – (1 g)' +
+                        //     '</option>' +
+                        // '</optgroup>' +
+                        '<optgroup label="–––Happy Fruit–––">' +
+                            '<option value="1" data-price="34.99">' +
+                                'Happy Fruit Delta 8 + THCV Disposable Vape – Apple Bliss – (1 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="34.99">' +
+                                'Happy Fruit Delta 8 Disposable Vape – Berry Cool – (1 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="34.99">' +
+                                'Happy Fruit Delta 8 + THCV Disposable Vape – Lifted Lemonade – (1 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="34.99">' +
+                                'Happy Fruit Delta 8 + CBN Disposable Vape – Moon Berry – (1 g)' +
+                            '</option>' +
+                        '</optgroup>' +
+                        '<optgroup label="–––Koi CBD–––">' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Disposable Vape – Lemon Haze – (0.5 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Disposable Vape – OG Kush – (0.5 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Disposable Vape – Sunset Gelato – (0.5 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Disposable Vape – Super Sour Zkittles – (0.5 g)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Gummies – Blue Razz – (25 mg each – 500 mg total – 20 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Gummies – Strawberry – (25 mg each – 500 mg total – 20 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="39.99">' +
+                                'Koi Delta 8 Gummies – Watermelon – (25 mg each – 500 mg total – 20 ct)' +
+                            '</option>' +
+                        '</optgroup>' +
+                        '<optgroup label="–––Utoya–––">' +
+                            '<option value="1" data-price="9.99">' +
+                                'Utoya Entourage Hybrid Edibles – Rice Krispy Bar – (100 mg)' +
+                            '</option>' +
+                            '<option value="1" data-price="49.99">' +
+                                'Utoya Entourage Hybrid Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="9.99">' +
+                                'Utoya Entourage Indica Edibles – Rice Krispy Bar – (100 mg)' +
+                            '</option>' +
+                            '<option value="1" data-price="49.99">' +
+                                'Utoya Entourage Indica Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                            '</option>' +
+                            '<option value="1" data-price="9.99">' +
+                                'Utoya Entourage Sativa Edibles – Rice Krispy Bar – (100 mg)' +
+                            '</option>' +
+                            '<option value="1" data-price="49.99">' +
+                                'Utoya Entourage Sativa Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                            '</option>' +
+                        '</optgroup>' +
+                    '</select>' +
+                    '<span id="priceForEach"></span>' +
+                    '<span id="priceTotal"></span>' +
+                    '<label id="quantity-label">' +
+                        '&ensp;&ensp;Quantity:' +
+                        '<input type="number" id="quantity" name="quantity" ' +
+                            'oninput="productSum(this.parentElement.parentElement)" value="1" min="1" max="99">' +
+                    '</label>' +
+                '</div>' +
+                '<div id="add-product">' +
+                    '<a href="#" id="add-product-link" onclick="addProduct(); return false;"><font size="+1">+</font> Add Product</a>' +
+                '</div>' +
+                '<div id="subtotal"></div>' +
+                '<div id="sales-tax"></div>' +
+                '<div id="delivery-fee"></div>' +
+                '<hr id="hr" style="display: none; margin-left: 200px; margin-bottom: 0; margin-top: 20px">' +
+                '<div id="total"></div>' +
+            '</div>' +
+        '</div>';
+
+        document.getElementById('section-main-content').innerHTML = '';
+        document.getElementById('section-main-content').insertAdjacentHTML( 'beforeend', str );
+    }
+
+    function addProduct() {
+        let str = '' +
+        '<div id="product-group">' +
+            '<select name="product" id="product" onchange="productSum(this.parentElement)">' +
+                '<option hidden selected="selected">Select Product</option>' +
+                '<optgroup label="–––Astria Farms–––">' +
+                    '<option value="1" data-price="89.99">' +
+                        'Astria Farms DELTA 8 Gummies – BIG FRUIT PACK – (100 MG EACH – 2000 MG TOTAL – 20 CT)' +
+                    '</option>' +
+                    '<option value="1" data-price="25.99">' +
+                        'Astria Farms DELTA 8 Gummies – Lemon – (30 mg each – 300 mg total – 10 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="25.99">' +
+                        'Astria Farms DELTA 8 Gummies – Regular Fruit Pack – (30 mg each – 300 mg total – 10 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="25.99">' +
+                        'Astria Farms DELTA 8 Gummies – Super Sour Fruit Pack – (30 mg each – 300 mg total – 10 ct)' +
+                    '</option>' +
+                '</optgroup>' +
+                '<optgroup label="–––Delta Beverages–––">' +
+                    '<option value="1" data-price="19.99">' +
+                        'Delta Beverages – Lime – (4-Pack)' +
+                    '</option>' +
+                    '<option value="1" data-price="19.99">' +
+                        'Delta Beverages – Mango – (4-Pack)' +
+                    '</option>' +
+                    '<option value="1" data-price="59.99">' +
+                        'Delta Beverages – MIXX Variety Pack – (12-Pack)' +
+                    '</option>' +
+                '</optgroup>' +
+                // '<optgroup label="–––Earthy Select–––">' +
+                //     '<option value="1" data-price="">' +
+                //         'Earthy Select Delta 8 Vape - Headband – (1 g)' +
+                //     '</option>' +
+                //     '<option value="1" data-price="">' +
+                //         'Earthy Select THC-O Disposable – Blue Cookies – (1 g)' +
+                //     '</option>' +
+                // '</optgroup>' +
+                '<optgroup label="–––Happy Fruit–––">' +
+                    '<option value="1" data-price="34.99">' +
+                        'Happy Fruit Delta 8 + THCV Disposable Vape – Apple Bliss – (1 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="34.99">' +
+                        'Happy Fruit Delta 8 Disposable Vape – Berry Cool – (1 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="34.99">' +
+                        'Happy Fruit Delta 8 + THCV Disposable Vape – Lifted Lemonade – (1 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="34.99">' +
+                        'Happy Fruit Delta 8 + CBN Disposable Vape – Moon Berry – (1 g)' +
+                    '</option>' +
+                '</optgroup>' +
+                '<optgroup label="–––Koi CBD–––">' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Disposable Vape – Lemon Haze – (0.5 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Disposable Vape – OG Kush – (0.5 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Disposable Vape – Sunset Gelato – (0.5 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Disposable Vape – Super Sour Zkittles – (0.5 g)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Gummies – Blue Razz – (25 mg each – 500 mg total – 20 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Gummies – Strawberry – (25 mg each – 500 mg total – 20 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="39.99">' +
+                        'Koi Delta 8 Gummies – Watermelon – (25 mg each – 500 mg total – 20 ct)' +
+                    '</option>' +
+                '</optgroup>' +
+                '<optgroup label="–––Utoya–––">' +
+                    '<option value="1" data-price="9.99">' +
+                        'Utoya Entourage Hybrid Edibles – Rice Krispy Bar – (100 mg)' +
+                    '</option>' +
+                    '<option value="1" data-price="49.99">' +
+                        'Utoya Entourage Hybrid Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="9.99">' +
+                        'Utoya Entourage Indica Edibles – Rice Krispy Bar – (100 mg)' +
+                    '</option>' +
+                    '<option value="1" data-price="49.99">' +
+                        'Utoya Entourage Indica Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                    '</option>' +
+                    '<option value="1" data-price="9.99">' +
+                        'Utoya Entourage Sativa Edibles – Rice Krispy Bar – (100 mg)' +
+                    '</option>' +
+                    '<option value="1" data-price="49.99">' +
+                        'Utoya Entourage Sativa Edibles – Mini Fruit Slices – (40 mg each – 1200 mg total – 30 ct)' +
+                    '</option>' +
+                '</optgroup>' +
+            '</select>' +
+            '<span class="iconify" style="float: right; margin-top: 1px" onClick="deleteProduct(this.parentElement)" data-icon="ic:baseline-cancel">' +
+            '</span>' +
+            '<span id="priceForEach"></span>' +
+            '<span id="priceTotal"></span>' +
+            '<label id="quantity-label">' +
+                '&ensp;&ensp;Quantity:' +
+                '<input type="number" id="quantity" name="quantity" ' +
+                    'oninput="productSum(this.parentElement.parentElement)" value="1" min="1" max="99">' +
+            '</label>' +
+        '</div>';
+
+        document.getElementById('add-product').insertAdjacentHTML( 'beforebegin', str );
+    }
+
+</script>

@@ -1,0 +1,16 @@
+{
+  "name": "amazon-connect-streams",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-customer-profiles": "^3.56.0",
+    "@aws-sdk": "*",
+    "express": "^4.17.3"
+  }
+}
